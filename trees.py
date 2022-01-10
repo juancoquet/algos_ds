@@ -102,6 +102,47 @@ class BinarySearchTree:
     def __delitem__(self, key):
         self.delete(key)
 
+    def remove(self, current_node):
+        if current_node.is_leaf(): # current_node has no children
+            if current_node == current_node.parent.left_child:
+                current_node.parent.left_child = None
+            else:
+                current_node.parent.right_child = None
+        elif current_node.has_both_children():
+            successor = current_node.find_successor()
+            successor.splice_out()
+            current_node.key = successor.key
+            current_node.value = successor.value
+        else: # current_node has one child
+            if current_node.has_left_child(): # current_node only has left child
+                if current_node.is_left_child():
+                    current_node.left_child.parent = current_node.parent
+                    current_node.parent.left_child = current_node.left_child
+                elif current_node.is_right_child():
+                    current_node.right_child.parent = current_node.parent
+                    current_node.parent.right_child = current_node.right_child
+                else: # current_node is root
+                    current_node.replace_node_data(
+                        key=current_node.left_child.key,
+                        value=current_node.left_child.value,
+                        left_child=current_node.left_child.left_child,
+                        right_child=current_node.left_child.right_child
+                    )
+            else: # current_node only has right child
+                if current_node.is_left_child():
+                    current_node.right_child.parent = current_node.parent
+                    current_node.parent.left_child = current_node.right_child
+                elif current_node.is_right_child():
+                    current_node.right_child.parent = current_node.parent
+                    current_node.parent.right_child = current_node.right_child
+                else: # current_node is root
+                    current_node.replace_node_data(
+                        key=current_node.right_child.key,
+                        value=current_node.right_child.value,
+                        left_child=current_node.right_child.left_child,
+                        right_child=current_node.right_child.right_child
+                    )
+
 
 class TreeNode:
 
@@ -111,6 +152,16 @@ class TreeNode:
         self.left_child = left_child
         self.right_child = right_child
         self.parent = parent
+
+    def __iter__(self):
+        if self:
+            if self.has_left_child():
+                for node in self.left_child:
+                    yield node
+            yield self
+            if self.has_right_child():
+                for node in self.right_child:
+                    yield node
 
     def is_left_child(self):
         return self.parent and self.parent.left_child == self
@@ -139,3 +190,53 @@ class TreeNode:
         self.right_child = new_node
         if new_node:
             new_node.parent = self
+
+    def replace_node_data(self, key, value, left_child, right_child):
+        self.key = key
+        self.value = value
+        self.left_child = left_child
+        self.right_child = right_child
+        if self.has_left_child():
+            self.left_child.parent = self
+        if self.has_right_child():
+            self.right_child.parent = self
+    
+    def splice_out(self):
+        if self.is_leaf():
+            if self.is_left_child():
+                self.parent.left_child = None
+            else:
+                self.parent.right_child = None
+        elif self.has_any_children():
+            if self.has_left_child():
+                if self.is_left_child(): # has left child and is left child
+                    self.parent.left_child = self.left_child
+                else: # has left child and is right child
+                    self.parent.right_child= self.left_child
+                self.left_child.parent = self.parent
+            else: # has right child
+                if self.is_left_child(): # has right child and is left child
+                    self.parent.left_child = self.right_child
+                else: # has right child and is right child
+                    self.parent.right_child = self.right_child
+                self.right_child.parent = self.parent
+    
+    def find_successor(self):
+        successor = None
+        if self.has_right_child():
+            successor = self.right_child.find_min()
+        else:
+            if self.parent:
+                if self.is_left_child():
+                    successor = self.parent
+                else: # is right child
+                    self.parent.right_child = None
+                    successor = self.parent.find_successor()
+                    self.parent.right_child = self
+        return successor
+
+    def find_min(self):
+        current_node = self
+        while current_node.has_left_child():
+            current_node = current_node.left_child
+        return current_node
