@@ -152,6 +152,7 @@ class TreeNode:
         self.left_child = left_child
         self.right_child = right_child
         self.parent = parent
+        self.balance_factor = 0
 
     def __iter__(self):
         if self:
@@ -240,3 +241,82 @@ class TreeNode:
         while current_node.has_left_child():
             current_node = current_node.left_child
         return current_node
+
+
+class AVLTree(BinarySearchTree):
+
+    def _put(self, key, value, current_node):
+        if key < current_node.key:
+            if current_node.has_left_child():
+                self._put(key, value, current_node.left_child)
+            else:
+                current_node.update_left_child(TreeNode(key, value, parent=current_node))
+                self.update_balance(current_node.left_child)
+        else:
+            if current_node.has_right_child():
+                self._put(key, value, current_node.right_child)
+            else:
+                current_node.right_child = TreeNode(key, value, parent=current_node)
+                self.update_balance(current_node.right_child)
+
+    def update_balance(self, node):
+        if node.balance_factor > 1 or node.balance_factor < -1:
+            self.rebalance(node)
+            return
+        if node.parent != None:
+            if node.is_left_child():
+                node.parent.balance_factor += 1
+            elif node.is_right_child():
+                node.parent.balance_factor -= 1
+            if node.parent.balance_factor != 0:
+                self.update_balance(node.parent)
+
+    def rotate_left(self, orig_root):
+        new_root = orig_root.right_child
+        orig_root.right_child = new_root.left_child
+        if new_root.left_child != None:
+            new_root.left_child.parent = orig_root
+        new_root.parent = orig_root.parent
+        if orig_root.is_root():
+            self.root = new_root
+        else:
+            if orig_root.is_left_child():
+                    orig_root.parent.left_child = new_root
+            else:
+                orig_root.parent.right_child = new_root
+        new_root.left_child = orig_root
+        orig_root.parent = new_root
+        orig_root.balance_factor = orig_root.balance_factor + 1 - min(new_root.balance_factor, 0)
+        new_root.balance_factor = new_root.balance_factor + 1 + max(orig_root.balance_factor, 0)
+
+    def rotate_right(self, orig_root):
+        new_root = orig_root.left_child
+        orig_root.left_child = new_root.right_child
+        if new_root.right_child != None:
+            new_root.right_child.parent = orig_root
+        new_root.parent = orig_root.parent
+        if orig_root.is_root():
+            self.root = new_root
+        else:
+            if orig_root.is_left_child():
+                    orig_root.parent.left_child = new_root
+            else:
+                orig_root.parent.right_child = new_root
+        new_root.right_child = orig_root
+        orig_root.parent = new_root
+        orig_root.balance_factor = orig_root.balance_factor - 1 - max(new_root.balance_factor, 0)
+        new_root.balance_factor = new_root.balance_factor - 1 + min(orig_root.balance_factor, 0)
+
+    def rebalance(self, node):
+        if node.balance_factor < 0:
+            if node.right_child.balance_factor > 0:
+                self.rotate_right(node.right_child)
+                self.rotate_left(node)
+            else:
+                self.rotate_left(node)
+        elif node.balance_factor > 0:
+            if node.left_child.balance_factor < 0:
+                self.rotate_left(node.left_child)
+                self.rotate_left(node)
+            else:
+                self.rotate_left(node)
