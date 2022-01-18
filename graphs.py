@@ -1,8 +1,15 @@
+from queue import Queue
+
+
 class Vertex:
 
     def __init__(self, key):
         self.key = key
         self.connected_to = {}
+        self.distance = 0
+        self.visited = False
+        self.fully_searched = False
+        self.predecessor = None
 
     def add_connection(self, to_vertex, weight=0):
         self.connected_to[to_vertex] = weight
@@ -53,3 +60,23 @@ class Graph:
 
     def __iter__(self):
         return iter(self.vertices.values())
+
+    def bfs(self, start_vertex):
+        start_vertex.distance = 0
+        to_search = Queue()
+        to_search.enqueue(start_vertex)
+        while to_search.size > 0:
+            current_vx = to_search.dequeue()
+            for neighbour in current_vx.get_connections():
+                if not neighbour.visited:
+                    neighbour.visited = True
+                    neighbour.distance = current_vx.distance + 1
+                    neighbour.predecessor = current_vx
+                    to_search.enqueue(neighbour)
+            current_vx.fully_searched = True
+
+    def traverse(self, vertex):
+        while vertex.predecessor is not None:
+            print(vertex.key)
+            vertex = vertex.predecessor
+        print(vertex.key)
