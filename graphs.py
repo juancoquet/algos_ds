@@ -10,6 +10,8 @@ class Vertex:
         self.visited = False
         self.fully_searched = False
         self.predecessor = None
+        self.discovered = None
+        self.finished = None
 
     def add_connection(self, to_vertex, weight=0):
         self.connected_to[to_vertex] = weight
@@ -32,6 +34,7 @@ class Graph:
     def __init__(self):
         self.vertices = {}
         self.num_vertices = 0
+        self.time = 0
 
     def add_vertex(self, key):
         new_vertex = Vertex(key)
@@ -80,3 +83,24 @@ class Graph:
             print(vertex.key)
             vertex = vertex.predecessor
         print(vertex.key)
+
+    def dfs(self):
+        for vertex in self:
+            vertex.visited = False
+            vertex.fully_searched = False
+            vertex.predecessor = None
+        for vertex in self:
+            if not vertex.visited:
+                self.dfs_visit(vertex)
+    
+    def dfs_visit(self, start_vertex):
+        start_vertex.visited = True
+        self.time += 1
+        start_vertex.discovered = self.time
+        for neighbour in start_vertex.get_connections():
+            if not neighbour.visited:
+                neighbour.predecessor = start_vertex
+                self.dfs_visit(neighbour)
+        start_vertex.fully_searched = True
+        self.time += 1
+        start_vertex.finished = self.time
