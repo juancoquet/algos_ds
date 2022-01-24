@@ -80,3 +80,19 @@ class PriorityQueue(BinaryHeap):
         while i > 0:
             self.percolate_down(i)
             i -= 1
+
+    def extract_min(self):
+        min_val = self.heap_list[1][0]
+        self.heap_list[1] = self.heap_list[self.current_size]
+        self.current_size -= 1
+        self.heap_list.pop()
+        self.percolate_down(1)
+        return min_val
+
+    def change_priority(self, vx, new_priority):
+        for i in range(1, self.current_size + 1):
+            if self.heap_list[i][1] == vx:
+                self.heap_list[i] = (new_priority, vx)
+                self.percolate_up(i)
+                self.percolate_down(i)
+                break

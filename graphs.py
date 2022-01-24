@@ -1,4 +1,6 @@
 from queue import Queue
+from bin_heap import PriorityQueue
+import sys
 
 
 class Vertex:
@@ -6,7 +8,7 @@ class Vertex:
     def __init__(self, key):
         self.key = key
         self.connected_to = {}
-        self.distance = 0
+        self.distance = sys.maxint
         self.visited = False
         self.fully_searched = False
         self.predecessor = None
@@ -32,7 +34,7 @@ class Vertex:
 class Graph:
 
     def __init__(self):
-        self.vertices = {}
+        self.vertices = {} # {vertex_key: Vertex}
         self.num_vertices = 0
         self.time = 0
 
@@ -104,3 +106,16 @@ class Graph:
         start_vertex.fully_searched = True
         self.time += 1
         start_vertex.finished = self.time
+
+    def dijkstra(self, start):
+        pq = PriorityQueue()
+        start.distance = 0
+        pq.heapify([(vx.distance, vx) for vx in self])
+        while pq.size > 0:
+            current_vx = pq.extract_min()
+            for neighbour in current_vx.get_connections():
+                new_distance = current_vx.distance + current_vx.get_weight(neighbour)
+                if new_distance < neighbour.distance:
+                    neighbour.distance = new_distance
+                    neighbour.predecessor = current_vx
+                    pq.change_priority(neighbour, new_distance)
