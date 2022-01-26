@@ -119,3 +119,20 @@ class Graph:
                     neighbour.distance = new_distance
                     neighbour.predecessor = current_vx
                     pq.change_priority(neighbour, new_distance)
+
+
+def prim(graph, start):
+    pq = PriorityQueue()
+    for vx in graph:
+        vx.distance = sys.maxint
+        vx.predecessor = None
+    start.distance = 0
+    pq.heapify([(vx.distance, vx) for vx in graph])
+    while pq.size > 0:
+        current_vx = pq.extract_min()
+        for neighbour in current_vx.get_connections():
+            new_cost = current_vx.distance + current_vx.get_weight(neighbour)
+            if neighbour in pq and new_cost < neighbour.distance:
+                neighbour.predecessor = current_vx
+                neighbour.distance = new_cost
+                pq.change_priority(neighbour, new_cost)
